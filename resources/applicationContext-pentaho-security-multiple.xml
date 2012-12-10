@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springsource.org/dtd/spring-beans.dtd">
+
+<!-- 
+
+	Example to support for multiple AuthenticationProviders 
+	The goal here is to connect together 2 (or more) of the individual configuration
+	files, making sure the bean names don't colide.
+
+
+	On this file, we need to remove in both files the bean with id="pentahoUserRoleListService", 
+	since we need to create one with a reference to the multiple auths.
+
+
+	After selecting this file to be included from pentaho-spring-beans.xml, you 
+	need to go to applicationContext-spring-security.xml and enumerate the list
+	of providers you define here in the bean id="authenticationManager", making it
+	something like this:
+
+
+	<bean id="authenticationManager" class="org.springframework.security.providers.ProviderManager">
+		<property name="providers">
+			<list>
+				<ref bean="daoAuthenticationProvider" />
+				<ref bean="daoAuthenticationProvider2" />
+				<ref local="anonymousAuthenticationProvider" />
+			</list>
+		</property>
+	</bean>
+
+
+-->
+
+<beans>
+
+	<!-- File 1, taking applicationContext-pentaho-security-hibernate.xml as a sample -->
+
+
+
+	<bean id="userRoleDaoUserRoleListService"
+		class="org.pentaho.platform.engine.security.userroledao.userrolelistservice.UserRoleDaoUserRoleListService">
+		<property name="userDetailsService" ref="userDetailsService" />
+		<property name="userRoleDao" ref="userRoleDao" />
+	</bean>
+
+	<bean id="pentahoUserRoleListService1"
+		class="org.pentaho.platform.engine.security.userrole.UserDetailsRoleListService">
+		<property name="userRoleListService">
+			<ref local="userRoleDaoUserRoleListService" />
+		</property>
+	</bean>
+
+	<!-- File 2, taking applicationContext-pentaho-security-memory.xml as a sample -->
+
+	<bean id="userRoleListEnhancedUserMapFactoryBean"
+		class="org.pentaho.platform.plugin.services.security.userrole.memory.UserRoleListEnhancedUserMapFactoryBean">
+		<property name="userMap" ref="userMap2" />
+	</bean>
+
+	<bean id="inMemoryUserRoleListService"
+		class="org.pentaho.platform.plugin.services.security.userrole.memory.InMemoryUserRoleListService">
+		<property name="userRoleListEnhancedUserMap">
+			<ref local="userRoleListEnhancedUserMapFactoryBean" />
+		</property>
+		<property name="userDetailsService" ref="userDetailsService2" />
+		<property name="allAuthorities">
+			<list>
+				<bean class="org.springframework.security.GrantedAuthorityImpl">
+					<constructor-arg value="Authenticated" />
+				</bean>
+				<bean class="org.springframework.security.GrantedAuthorityImpl">
+					<constructor-arg value="Webdetails" />
+				</bean>
+				<bean class="org.springframework.security.GrantedAuthorityImpl">
+					<constructor-arg value="Admin" />
+				</bean>
+			</list>
+		</property>
+		<property name="usernameComparator">
+			<bean class="org.pentaho.platform.engine.security.DefaultUsernameComparator" />
+		</property>
+		<property name="grantedAuthorityComparator">
+			<bean class="org.pentaho.platform.engine.security.DefaultGrantedAuthorityComparator" />
+		</property>
+	</bean>
+
+	<bean id="pentahoUserRoleListService2"
+		class="org.pentaho.platform.engine.security.userrole.UserDetailsRoleListService">
+		<property name="userRoleListService">
+			<ref local="inMemoryUserRoleListService" />
+		</property>
+	</bean>
+
+
+	<!-- Now, create the multipleUserRoleListService, using the same reference found in the
+	property userRoleListServices of the files chosen.
+	
+	Also create multiUserDetailRoleListService pointing to the first bean
+	-->
+
+	<bean id="pentahoMultiUserRoleListService"
+		class="org.pentaho.platform.engine.security.userrole.MultiUserRoleListService">
+		<property name="userRoleListServices">
+			<list>
+				<ref local="userRoleDaoUserRoleListService" />
+				<ref local="inMemoryUserRoleListService" />
+			</list>
+		</property>
+		<property name="usernameComparator">
+			<bean class="org.pentaho.platform.engine.security.DefaultUsernameComparator" />
+		</property>
+		<property name="grantedAuthorityComparator">
+			<bean class="org.pentaho.platform.engine.security.DefaultGrantedAuthorityComparator" />
+		</property>
+	</bean>
+
+	<bean id="pentahoUserRoleListService"
+		class="org.pentaho.platform.engine.security.userrole.UserDetailsRoleListService">
+		<property name="userRoleListService">
+			<ref local="pentahoMultiUserRoleListService" />
+		</property>
+	</bean>
+
+
+</beans>
