@@ -29,6 +29,7 @@ import org.pentaho.platform.api.engine.IUserRoleListService;
 import org.pentaho.platform.engine.security.messages.Messages;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.GrantedAuthority;
+import org.springframework.security.userdetails.UsernameNotFoundException;
 import org.springframework.util.Assert;
 
 /**
@@ -144,7 +145,14 @@ public class MultiUserRoleListService implements IUserRoleListService, Initializ
 
         for (Iterator<IUserRoleListService> it = userRoleListServices.iterator(); it.hasNext();) {
             IUserRoleListService iUserRoleListService = it.next();
-            results.addAll(Arrays.asList(iUserRoleListService.getAuthoritiesForUser(username)));
+
+            try{
+                results.addAll(Arrays.asList(iUserRoleListService.getAuthoritiesForUser(username)));
+            }
+            catch(Exception UsernameNotFoundException){
+                // In multiple providers, this errors are not uncommon
+            }
+            
         }
 
         GrantedAuthority[] ret = results.toArray(new GrantedAuthority[0]);
