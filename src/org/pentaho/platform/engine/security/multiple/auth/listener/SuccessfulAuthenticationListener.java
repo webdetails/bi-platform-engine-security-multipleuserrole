@@ -15,7 +15,7 @@ import org.springframework.security.userdetails.UsernameNotFoundException;
 
 public class SuccessfulAuthenticationListener implements ApplicationListener, Ordered {
 
-  private final int order = 999;
+  private final int order = 101; //runs after PentahoAuthenticationSuccessListener
 
   public SuccessfulAuthenticationListener() {
     super();
