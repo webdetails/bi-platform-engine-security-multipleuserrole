@@ -41,7 +41,7 @@
     </pen:publish>
   </bean>
 
-  <!-- when a user logs in successfully, this listener will trigger -->
+  <!-- when a user logs in successfully AND security.provider is set to 'multiple', this listener will trigger -->
   <bean id="successfulAuthenticationListener" class="org.pentaho.platform.engine.security.multiple.auth.listener.SuccessfulAuthenticationListener" />
 
   <bean id="holder" class="org.pentaho.platform.engine.security.multiple.auth.holder.ProviderHolder">    
