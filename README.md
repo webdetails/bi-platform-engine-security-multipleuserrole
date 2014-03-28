@@ -73,20 +73,16 @@ Leave all the existing files there, add these 2 new config files
 
 ### Edit *applicationContext-spring-security-multiple.xml* 
 
-In the PROVIDERS INFO block, you'll notice that each provider info xml block references
-bean id's declared in the other xml applicationContext-*-*-*.xml files. Ensure all bean id's 
-are correct. 
-
-If by any chance there is a bean declaration with no id declared, please declare it.
-
-(Note: for 5.0 CE, all are pre-set except for applicationContext-pentaho-security-memory.xml's UserRoleListService)
+In the *PROVIDERS INFO* block, you'll notice that each provider info xml block references
+bean id's declared in the other config files. Ensure all bean ids are correct. 
 
 
-### Enabling multiple authentication*
+### Enabling multiple authentication
 
 edit pentaho-solutions/system/security.properties and set security.provider=multiple 
 
 Note: at any time you can switch providers simply by declaring which one you intend to use on this security.properties file
+
 Accepted provider keys are: ldap, jdbc, memory, jackrabbit, multiple
 
 
