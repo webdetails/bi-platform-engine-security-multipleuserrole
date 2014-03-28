@@ -20,65 +20,70 @@ Following this steps should get you going:
 
 ### Compile the project
 
-Just run *ant* and you shuold be all set
+Just run *ant* and you should be all set
 
 
 ### Deploy the jar in Pentaho
 
 Copy the resulting file to pentaho's lib dir, (eg:
-*/opt/pentaho/server/webapps/pentaho/WEB-INF/lib/*).
+*/pentaho/server/webapps/pentaho/WEB-INF/lib/*).
 
 
 ### Copy the muiltiple provider spring config files to *solution/system*
 
 Copy the following files from *resources/* to *pentaho-solutions/system/*:
 
-* applicationContext-pentaho-security-multiple.xml
 * applicationContext-spring-security-multiple.xml
-
+* applicationContext-pentaho-security-multiple.xml
 
 ### Change *pentaho-spring-beans.xml* to load the new files
 
-Instead of loading one of the individual files (defaults to hibernate authentication), 
-tell pentaho to instead load the new configuration files. 
+Leave all the existing files there, add these 2 new config files
 
 *pentaho-spring-beans.xml* should then look something like:
 
 	<beans>
-	  <import resource="pentahosystemconfig.xml" />
-	  <import resource="adminplugins.xml" />
-	  <import resource="systemlisteners.xml" />
-	  <import resource="sessionstartupactions.xml" />
-	  <import resource="applicationcontext-spring-security.xml" />
-	  <import resource="applicationcontext-common-authorization.xml" />
-	  <import resource="applicationcontext-spring-security-multiple.xml" />
-	  <import resource="applicationcontext-pentaho-security-multiple.xml" />
-	  <import resource="pentahoobjects.spring.xml" />
+	  (...)
+	  <import resource="applicationContext-spring-security.xml" />
+  
+	  <import resource="applicationContext-spring-security-superuser.xml" />
+	  <import resource="applicationContext-pentaho-security-superuser.xml" />
+	  
+	  <import resource="applicationContext-common-authorization.xml" />
+
+	  <import resource="applicationContext-spring-security-memory.xml" />
+	  <import resource="applicationContext-pentaho-security-memory.xml" />
+
+	  <import resource="applicationContext-spring-security-ldap.xml" />
+	  <import resource="applicationContext-pentaho-security-ldap.xml" />
+
+	  <import resource="applicationContext-spring-security-jackrabbit.xml" />
+	  <import resource="applicationContext-pentaho-security-jackrabbit.xml" />
+	  
+	  <import resource="applicationContext-pentaho-security-jdbc.xml" />
+	  <import resource="applicationContext-spring-security-jdbc.xml" />
+
+	  <import resource="applicationContext-spring-security-multiple.xml" />
+	  <import resource="applicationContext-pentaho-security-multiple.xml" />
+	  
+	  <import resource="pentahoObjects.spring.xml" />
+	  (...)
 	</beans>
 
 
-*Note: This snippet is taken from pentaho 4.8, different versions may have files
-with different content*
+### Edit *applicationContext-spring-security-multiple.xml* 
+
+In the *PROVIDERS INFO* block, you'll notice that each provider info xml block references
+bean id's declared in the other config files. Ensure all bean ids are correct. 
 
 
-### Change the list of providers in *applicationContext-spring-security.xml*
+### Enabling multiple authentication
 
-In *applicationContext-spring-security.xml*, look for a bean named
-*authenticationManager*, and add the providers you want. If you're using the
-sample file *applicationContext-spring-security-multiple.xml*, the 2 referenced
-beans are called *daoAuthenticationProvider* and *daoAuthenticationProvider2*.
-You're not limited to just 2 providers.
+edit pentaho-solutions/system/security.properties and set security.provider=multiple 
 
+Note: at any time you can switch providers simply by declaring which one you intend to use on this security.properties file
 
-### Edit *applicationContext-spring-security-multiple.xml* and
-*applicationContext-pentaho-security-multiple.xml* for your case
-
-This is the part where you configure the types of authentication you want. Even
-if it seems complicated at first, you'll notice that the 2 configuration files
-for multiple authentication are simply a concatenations of the individual files
-provided by pentaho, making sure the bean names don't colide. 
-
-On this example case we have hibernate and memory authentication joined together.
+Accepted provider keys are: ldap, jdbc, memory, jackrabbit, multiple
 
 
 ### Launch the bi-server

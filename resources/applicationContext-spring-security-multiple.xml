@@ -1,181 +1,105 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springsource.org/dtd/spring-beans.dtd">
 
 
-<!-- 
+<!--+
+| Application context containing Multiple AuthenticationProvider implementation.
++-->
 
-	Example to support for multiple AuthenticationProviders 
-	The goal here is to connect together 2 (or more) of the individual configuration
-	files, making sure the bean names don't colide.
+<beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:pen="http://www.pentaho.com/schema/pentaho-system"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+                           http://www.pentaho.com/schema/pentaho-system http://www.pentaho.com/schema/pentaho-system.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd" 
+       default-lazy-init="true">
 
-	After selecting this file to be included from pentaho-spring-beans.xml, you 
-	need to go to applicationContext-spring-security.xml and enumerate the list
-	of providers you define here in the bean id="authenticationManager", making it
-	something like this:
+  <bean id="authenticationProvider" class="org.pentaho.platform.engine.security.multiple.auth.MultipleAuthenticationProvider">
+    <property name="userDetailsService">
+      <ref bean="multipleAuthUserDetailsService" />
+    </property>
+    <property name="holder">
+      <ref bean="holder" />
+    </property>
+    <pen:publish as-type="org.springframework.security.providers.AuthenticationProvider">
+      <pen:attributes>
+        <pen:attr key="providerName" value="multiple"/>
+        <pen:attr key="priority" value="999"/>
+      </pen:attributes>
+    </pen:publish>
+  </bean>
 
+  <bean id="multipleAuthUserDetailsService" class="org.pentaho.platform.engine.security.multiple.auth.MultipleAuthUserDetailsService">
+    <property name="holder">
+      <ref bean="holder" />
+    </property>
+    <pen:publish as-type="INTERFACES">
+      <pen:attributes>
+        <pen:attr key="providerName" value="multiple"/>
+      </pen:attributes>
+    </pen:publish>
+  </bean>
 
-	<bean id="authenticationManager" class="org.springframework.security.providers.ProviderManager">
-		<property name="providers">
-			<list>
-				<ref bean="daoAuthenticationProvider" />
-				<ref bean="daoAuthenticationProvider2" />
-				<ref local="anonymousAuthenticationProvider" />
-			</list>
-		</property>
-	</bean>
+  <!-- when a user logs in successfully AND security.provider is set to 'multiple', this listener will trigger -->
+  <bean id="successfulAuthenticationListener" class="org.pentaho.platform.engine.security.multiple.auth.listener.SuccessfulAuthenticationListener" />
 
+  <bean id="holder" class="org.pentaho.platform.engine.security.multiple.auth.holder.ProviderHolder">    
+    <property name="providers">
+      <ref local="providers" />
+    </property>
+  </bean>
 
--->
+  <!-- /////////////// -->
+  <!-- PROVIDERS LIST  -->
+  <!-- (order matters) -->
+  <!-- /////////////// -->
 
-	<!-- File 1, taking applicationContext-spring-security-hibernate.xml as a sample -->
-
-	<!--+
-	| Application context containing Hibernate AuthenticationProvider 
-	| implementation.
-	+-->
-
-<beans>
-
-	<bean id="daoAuthenticationProvider" class="org.springframework.security.providers.dao.DaoAuthenticationProvider">
-		<property name="userDetailsService">
-			<ref local="userDetailsService" />
-		</property>
-		<property name="passwordEncoder">
-			<ref local="passwordEncoder" />
-		</property>
-	</bean>
-
-	<!-- UserDetailsService that delegates to an IUserRoleDao -->
-	<bean id="userDetailsService" class="org.pentaho.platform.engine.security.userroledao.userdetailsservice.UserRoleDaoUserDetailsService">
-		<property name="userRoleDao">
-			<ref local="userRoleDao" />
-		</property>
-	</bean>
-
-	<!-- IUserRoleDao implementation -->
-	<bean id="userRoleDao" class="org.pentaho.platform.engine.security.userroledao.hibernate.HibernateUserRoleDao"
-		init-method="init">
-		<property name="sessionFactory">
-			<ref local="sessionFactory" />
-		</property>
-		<property name="initHandler">
-			<!-- detects if USERS table is empty and if so, inserts sample users and roles -->
-			<bean class="org.pentaho.platform.engine.security.userroledao.hibernate.sample.SampleUsersAndRolesInitHandler">
-				<property name="sessionFactory">
-					<ref local="sessionFactory" />
-				</property>
-				<property name="userRoleDao">
-					<ref local="txnUserRoleDao" />
-				</property>
-			</bean>
-		</property>
-	</bean>
-
-	<!-- an IUserRoleDao that decorates another IUserRoleDao with transactions -->
-	<bean id="txnUserRoleDao" class="org.pentaho.platform.engine.security.userroledao.hibernate.UserRoleDaoTransactionDecorator">
-		<property name="userRoleDao">
-			<ref local="userRoleDao" />
-		</property>
-		<property name="transactionTemplate">
-			<bean class="org.springframework.transaction.support.TransactionTemplate">
-				<property name="propagationBehaviorName" value="PROPAGATION_REQUIRES_NEW" />
-				<property name="transactionManager">
-					<bean id="hibernateTransactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
-						<property name="sessionFactory">
-							<ref local="sessionFactory" />
-						</property>
-					</bean>
-				</property>
-			</bean>
-		</property>
-	</bean>
-
-	<!-- session factory containing mapping files and config properties -->
-	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
-		<property name="dataSource">
-			<ref local="dataSource" />
-		</property>
-		<property name="mappingResources">
-			<list>
-				<value>PentahoUser.hbm.xml</value>
-				<value>PentahoRole.hbm.xml</value>
-				<value>PentahoUserRoleMapping.hbm.xml</value>
-			</list>
-		</property>
-		<property name="hibernateProperties">
-			<props>
-				<prop key="hibernate.connection.driver_class">${jdbc.driver}</prop>
-				<prop key="hibernate.connection.url">${jdbc.url}</prop>
-				<prop key="hibernate.connection.username">${jdbc.username}</prop>
-				<prop key="hibernate.connection.password">${jdbc.password}</prop>
-				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
-				<prop key="hibernate.hbm2ddl.auto">update</prop>
-				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
-				<prop key="hibernate.generate_statistics">true</prop>
-				<prop key="hibernate.cache.use_query_cache">true</prop>
-				<prop key="hibernate.show_sql">false</prop>
-				<prop key="hibernate.connection.pool_size">10</prop>
-			</props>
-		</property>
-	</bean>
-
-	<!-- ${}-style property values are pulled in by PropertyPlaceholderConfigurer -->
-	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="${jdbc.driver}" />
-		<property name="url" value="${jdbc.url}" />
-		<property name="username" value="${jdbc.username}" />
-		<property name="password" value="${jdbc.password}" />
-	</bean>
-
-	<!-- not a plaintext password encoder -->
-	<bean id="passwordEncoder" class="org.pentaho.platform.engine.security.DefaultPentahoPasswordEncoder" />
-
-	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location" value="applicationContext-spring-security-hibernate.properties" />
-	</bean>
+  <bean id="providers" class="java.util.ArrayList">
+     <constructor-arg>
+      <util:list list-class="java.util.ArrayList" value-type="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
+        <ref bean="memory" />
+        <ref bean="jackrabbit" />
+      </util:list>
+     </constructor-arg>
+     <pen:publish as-type="CLASSES">
+        <pen:attributes>
+          <pen:attr key="priority" value="9999"/>
+      </pen:attributes>
+     </pen:publish>
+  </bean>
 
 
+  <!-- /////////////// -->
+  <!-- PROVIDERS INFO -->
+  <!-- /////////////// -->
 
+  <!-- memoryUserDetailsService, inMemoryUserRoleListService, memoryPasswordEncoder are defined in application-context-*-security-memory.xml -->
+  <bean id="memory" class="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
+    <property name="id" value="memory" />
+    <property name="userDetailsService">
+      <ref bean="memoryUserDetailsService" />
+    </property>
+    <property name="userRoleListService">
+      <ref bean="inMemoryUserRoleListService" />
+    </property>
+    <property name="passwordEncoder">
+      <ref bean="memoryPasswordEncoder" />
+    </property>
+  </bean>
 
-	<!-- File 2, taking applicationContext-spring-security-memory.xml as a sample -->
-
-	<bean id="daoAuthenticationProvider2"
-		class="org.springframework.security.providers.dao.DaoAuthenticationProvider">
-		<property name="userDetailsService">
-			<ref bean="userDetailsService2" />
-		</property>
-		<property name="passwordEncoder">
-			<ref bean="passwordEncoder2" />
-		</property>
-	</bean>
-
-	<bean id="userDetailsService2"
-		class="org.springframework.security.userdetails.memory.InMemoryDaoImpl">
-		<property name="userMap">
-			<ref local="userMapFactoryBean2" />
-		</property>
-	</bean>
-
-	<bean id="userMap2" class="java.lang.String">
-		<constructor-arg type="java.lang.String">
-			<!-- case matters -->
-			<value>
-				<![CDATA[
-				pedro=pedro,Admin,Webdetails,Authenticated
-				]]>
-			</value>
-		</constructor-arg>
-	</bean>
-
-	<bean id="userMapFactoryBean2"
-		class="org.pentaho.platform.plugin.services.security.userrole.memory.UserMapFactoryBean">
-		<property name="userMap">
-			<ref local="userMap2" />
-		</property>
-	</bean>
-
-	<bean id="passwordEncoder2"
-		class="org.springframework.security.providers.encoding.PlaintextPasswordEncoder" />
-
+  <!-- userDetailsService, userRoleListService, jackrabbitPasswordEncoder are defined in application-context-*-security-jackrabbit.xml -->
+  <bean id="jackrabbit" class="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
+    <property name="id" value="jackrabbit" />
+    <property name="userDetailsService">
+      <ref bean="userDetailsService" />
+    </property>
+    <property name="userRoleListService">
+      <ref bean="userRoleListService" />
+    </property>
+    <property name="passwordEncoder">
+      <ref bean="jackrabbitPasswordEncoder" />
+    </property>
+  </bean>
 
 </beans>
