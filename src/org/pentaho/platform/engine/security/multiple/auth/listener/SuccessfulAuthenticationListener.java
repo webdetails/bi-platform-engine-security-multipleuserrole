@@ -6,11 +6,14 @@ import org.pentaho.platform.engine.core.system.PentahoSessionHolder;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.engine.security.multiple.auth.holder.Provider;
 import org.pentaho.platform.engine.security.multiple.auth.holder.ProviderHolder;
+import org.pentaho.platform.plugin.services.security.userrole.PentahoCachingUserDetailsService;
+import org.pentaho.platform.repository2.unified.jcr.JcrTenantUtils;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.security.event.authentication.AuthenticationSuccessEvent;
 import org.springframework.security.event.authentication.InteractiveAuthenticationSuccessEvent;
+import org.springframework.security.userdetails.UserDetailsService;
 import org.springframework.security.userdetails.UsernameNotFoundException;
 
 public class SuccessfulAuthenticationListener implements ApplicationListener, Ordered {
@@ -37,7 +40,9 @@ public class SuccessfulAuthenticationListener implements ApplicationListener, Or
 
         // this user's session will declare this provider as the one to use for all user/role data fetching
         PentahoSessionHolder.getSession().setAttribute( Provider.MULTIPLE_AUTH_PROVIDER, providerId );
-
+        
+        // update pentaho user cache: prepare it to receive this user
+        preparePentahoUserCacheToStoreUser( PentahoSessionHolder.getSession().getName() );
       }
     }
   }
@@ -83,5 +88,22 @@ public class SuccessfulAuthenticationListener implements ApplicationListener, Or
       }
     }
     return null;
+  }
+  
+  private void preparePentahoUserCacheToStoreUser( String username ){
+    
+    if( !StringUtils.isEmpty( username ) ){
+      
+      UserDetailsService service = PentahoSystem.get( UserDetailsService.class, PentahoSessionHolder.getSession() );
+      
+      if( service != null && service instanceof PentahoCachingUserDetailsService ){
+        
+        if( ( ( PentahoCachingUserDetailsService ) service ).getUserCache() != null ){
+          
+          ( ( PentahoCachingUserDetailsService ) service ).getUserCache().removeUserFromCache( username );
+          ( ( PentahoCachingUserDetailsService ) service ).getUserCache().removeUserFromCache( JcrTenantUtils.getTenantedUser( username ) );
+        }
+      }
+    }
   }
 }
