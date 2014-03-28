@@ -58,8 +58,6 @@
   <bean id="providers" class="java.util.ArrayList">
      <constructor-arg>
       <util:list list-class="java.util.ArrayList" value-type="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
-        <!--<ref bean="jdbc" />-->
-        <!--<ref bean="ldap" />-->
         <ref bean="memory" />
         <ref bean="jackrabbit" />
       </util:list>
@@ -75,20 +73,6 @@
   <!-- /////////////// -->
   <!-- PROVIDERS INFO -->
   <!-- /////////////// -->
-
-  <!-- jdbcUserDetailsService, jdbcUserRoleListService, jdbcPasswordEncoder are defined in application-context-*-security-jdbc.xml -->
-  <bean id="jdbc" class="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
-    <property name="id" value="jdbc" />
-    <property name="userDetailsService"> 
-      <ref bean="jdbcUserDetailsService" /> 
-    </property>
-    <property name="userRoleListService">
-      <ref bean="jdbcUserRoleListService" />
-    </property>
-    <property name="passwordEncoder">
-      <ref bean="jdbcPasswordEncoder" />
-    </property>
-  </bean>
 
   <!-- memoryUserDetailsService, inMemoryUserRoleListService, memoryPasswordEncoder are defined in application-context-*-security-memory.xml -->
   <bean id="memory" class="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
@@ -115,17 +99,6 @@
     </property>
     <property name="passwordEncoder">
       <ref bean="jackrabbitPasswordEncoder" />
-    </property>
-  </bean>
-
-  <!-- ldapUserDetailsService, ldapUserRoleListService are defined in application-context-*-security-ldap.xml -->
-  <bean id="ldap" class="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
-    <property name="id" value="ldap" />
-    <property name="userDetailsService">
-      <ref bean="ldapUserDetailsService" />
-    </property>
-    <property name="userRoleListService">
-      <ref bean="ldapUserRoleListService" />
     </property>
   </bean>
 
