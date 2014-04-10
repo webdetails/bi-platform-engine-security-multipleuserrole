@@ -58,7 +58,6 @@
   <bean id="providers" class="java.util.ArrayList">
      <constructor-arg>
       <util:list list-class="java.util.ArrayList" value-type="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
-        <ref bean="memory" />
         <ref bean="jackrabbit" />
       </util:list>
      </constructor-arg>
@@ -73,20 +72,6 @@
   <!-- /////////////// -->
   <!-- PROVIDERS INFO -->
   <!-- /////////////// -->
-
-  <!-- memoryUserDetailsService, inMemoryUserRoleListService, memoryPasswordEncoder are defined in application-context-*-security-memory.xml -->
-  <bean id="memory" class="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">
-    <property name="id" value="memory" />
-    <property name="userDetailsService">
-      <ref bean="memoryUserDetailsService" />
-    </property>
-    <property name="userRoleListService">
-      <ref bean="inMemoryUserRoleListService" />
-    </property>
-    <property name="passwordEncoder">
-      <ref bean="memoryPasswordEncoder" />
-    </property>
-  </bean>
 
   <!-- userDetailsService, userRoleListService, jackrabbitPasswordEncoder are defined in application-context-*-security-jackrabbit.xml -->
   <bean id="jackrabbit" class="org.pentaho.platform.engine.security.multiple.auth.holder.Provider">

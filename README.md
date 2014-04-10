@@ -83,7 +83,7 @@ edit pentaho-solutions/system/security.properties and set security.provider=mult
 
 Note: at any time you can switch providers simply by declaring which one you intend to use on this security.properties file
 
-Accepted provider keys are: ldap, jdbc, memory, jackrabbit, multiple
+Accepted provider keys are: ldap, jdbc, memory, jackrabbit, multiple, super
 
 
 ### Launch the bi-server
