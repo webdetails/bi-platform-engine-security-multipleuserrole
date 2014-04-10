@@ -29,9 +29,9 @@
         <dependency org="dom4j"               name="dom4j"               rev="1.6.1" transitive="false"/>
 		
         <!--  internal dependencies -->        
-        <dependency org="${ivy.artifact.group}" name="pentaho-platform-api"         rev="${project.revision}" changing="true" conf="default->default"/>    
-        <dependency org="${ivy.artifact.group}" name="pentaho-platform-core"        rev="${project.revision}" changing="true" conf="default->default"/>
-        <dependency org="${ivy.artifact.group}" name="pentaho-platform-extensions"  rev="${project.revision}" changing="true" conf="default->default"/>
+        <dependency org="${ivy.artifact.group}" name="pentaho-platform-api"         rev="${pentaho.project.revision}" changing="true" conf="default->default"/>    
+        <dependency org="${ivy.artifact.group}" name="pentaho-platform-core"        rev="${pentaho.project.revision}" changing="true" conf="default->default"/>
+        <dependency org="${ivy.artifact.group}" name="pentaho-platform-extensions"  rev="${pentaho.project.revision}" changing="true" conf="default->default"/>
     </dependencies>
     
 </ivy-module>
