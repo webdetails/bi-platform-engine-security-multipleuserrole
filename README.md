@@ -21,6 +21,10 @@ The first thing you should do is to confirm you have ant installed ( http://ant.
 To prep the project, you first need to resolve/include the necessary dependencies.
 Ivy.xml file contains a list of the dependencies needed to successfully compile this project.
 
+### To fetch dependencies and populate /lib folder 
+
+From the project root and using command-line simply type *ant resolve*
+
 
 How to use
 ----------
